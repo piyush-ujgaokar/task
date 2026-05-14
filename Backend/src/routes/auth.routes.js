@@ -12,4 +12,5 @@ router.post('/register',authUser, authorizeRole('Super Admin'),registerUser)
 router.post('/login',loginUser)
 router.get('/logout',authUser,logoutUser)
 
+
 module.exports=router
