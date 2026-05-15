@@ -1,33 +1,23 @@
-import DashboardLayout from "../../dashboard/layouts/DashboardLayout"
-
-import useUsers from "../hooks/useUsers"
+import DashboardLayout from "../../dashboard/layouts/DashboardLayout";
+import useUsers from "../hooks/useUsers";
+import UserTable from "../components/UserTable";
 
 const UsersPage = () => {
-
-  const {users,loading} = useUsers()
+  const { users, loading, handleDelete } = useUsers();
 
   if (loading) {
-    return <h1>Loading...</h1>
+    return <h1>Loading...</h1>;
   }
 
   return (
     <DashboardLayout>
-      <h1 className="text-3xl mb-5">
-        Users
-      </h1>
+      <div className="flex justify-between items-center mb-5">
+        <h1 className="text-3xl font-bold">Users</h1>
+      </div>
 
-      {
-        users.map((user) => (
-          <div key={user._id} className="border p-3 mb-3">
-            <h2>{user.name}</h2>
-            <p>{user.email}</p>
-            <p>{user.role}</p>
-          </div>
-        ))
-      }
-
+      <UserTable users={users} handleDelete={handleDelete} />
     </DashboardLayout>
-  )
-}
+  );
+};
 
-export default UsersPage
+export default UsersPage;

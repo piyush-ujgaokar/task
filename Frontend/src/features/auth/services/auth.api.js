@@ -2,7 +2,7 @@ import axios from 'axios'
 
 
 const api=axios.create({
-    baseURL:'http://localhost:30000',
+    baseURL:'http://localhost:3000',
     withCredentials:true
 })
 
@@ -38,6 +38,15 @@ export const createSuperAdmin=async({name,email,password})=>{
 export const logoutUser=async()=>{
     try {
         const response=await api.get('/api/auth/logout')
+        return response.data
+    }catch (error) {
+        throw error.response.data
+    }
+}
+
+export const getme=async()=>{
+    try {
+        const response=await api.get('/api/auth/get-me')
         return response.data
     }catch (error) {
         throw error.response.data

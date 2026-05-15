@@ -1,75 +1,8 @@
-// import { useContext } from "react"
-// import { AuthContext } from "../auth.context"
-// import { loginUser } from "../services/auth.api"
-
-
-
-// export const useAuth=()=>{
-
-//     const context=useContext(AuthContext)
-
-//     const {user,setUser,loading,setLoading,isAuthenticated,setIsAuthenticated}=context
-
-
-//     const handleLogin=async ({email,password})=>{
-//         setLoading(true)
-//         try{
-//             const data=await loginUser({email,password})
-//             setUser(data.user)
-//             setIsAuthenticated(true)
-//         }catch(error){
-//             console.log(error)
-//         }finally{
-//         setLoading(false)
-//         }
-//     }
-
-//     const handleRegister=async ({name,email,password,role,reportsTo})=>{
-//         setLoading(true)
-//         try{
-//             const data=await registerUser({name,email,password,role,reportsTo})
-//             setUser(data.user)
-//             setIsAuthenticated(true)
-//         }catch(error){
-//             console.log(error)
-//         }finally{
-//         setLoading(false)
-//         }
-//     }
-
-//     const handleLogout=async()=>{
-//         setLoading(true)    
-//         try{
-//             await logoutUser()
-//             setUser(null)
-//             setIsAuthenticated(false)
-//         }catch(error){
-//             console.log(error)
-//         }finally{
-//         setLoading(false)
-//         }
-//     }
-
-//     return {
-//         user,
-//         loading,    
-//         isAuthenticated,
-//         handleLogin,
-//         handleRegister,
-//         handleLogout
-//     }
-
-// }
-
-
 
 import {useContext} from "react"
-
-import {AuthContext} from "../context/auth.context"
-
-import {register,login,logout} from "../services/auth.api"
-
-import {useNavigate} from "react-router-dom"
+import {AuthContext} from "../auth.context"
+import {registerUser,loginUser,logoutUser} from "../services/auth.api"
+import {useNavigate} from "react-router"
 
 export const useAuth = () => {
 
@@ -82,10 +15,8 @@ export const useAuth = () => {
   const handleLogin =async ({email,password}) => {
       setLoading(true)
       try {
-        const data =await login({ email,password})
-
+        const data =await loginUser({ email,password})
         // save token
-
         localStorage.setItem(
           "token",
           data.token
@@ -122,7 +53,7 @@ export const useAuth = () => {
   const handleRegister =async ({name,email,password,role,reportsTo}) => {
       setLoading(true)
       try {
-        const data =await register({name,email,password,role,reportsTo})
+        const data =await registerUser({name,email,password,role,reportsTo})
         return data
 
       } catch (error) {
@@ -137,7 +68,7 @@ export const useAuth = () => {
   const handleLogout =async () => {
     setLoading(true)
       try {
-        await logout()
+        await logoutUser()
         localStorage.removeItem(
           "token"
         )

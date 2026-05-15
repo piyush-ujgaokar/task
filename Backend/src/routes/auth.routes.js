@@ -1,5 +1,5 @@
 const express=require('express')
-const {registerUser, createSuperAdmin, loginUser, logoutUser}=require('../controllers/auth.controller')
+const {registerUser, createSuperAdmin, loginUser, logoutUser, getMe}=require('../controllers/auth.controller')
 const {authUser}=require('../middleware/auth.middleware')
 const {authorizeRole}=require('../middleware/role.middleware')
 const { create } = require('../models/auth.model')
@@ -12,5 +12,6 @@ router.post('/register',authUser, authorizeRole('Super Admin'),registerUser)
 router.post('/login',loginUser)
 router.get('/logout',authUser,logoutUser)
 
+router.get('/get-me',authUser,getMe)
 
 module.exports=router

@@ -1,4 +1,4 @@
-import {Link} from "react-router-dom"
+import {Link} from "react-router"
 
 const UserRow = ({user,handleDelete}) => {
 
@@ -13,8 +13,7 @@ const UserRow = ({user,handleDelete}) => {
 
         <button onClick={() =>
             handleDelete(user._id)
-          }
-        >Delete</button>
+          }>Delete</button>
 
       </td>
 
