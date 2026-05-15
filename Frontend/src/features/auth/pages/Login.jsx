@@ -51,7 +51,7 @@ import { useAuth } from "../hooks/useAuth";
 
 const Login = () => {
   const { handleLogin } = useAuth();
-    
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -117,14 +117,6 @@ const Login = () => {
             Login
           </button>
         </form>
-
-        {/* Footer */}
-        <p className="text-center text-sm text-gray-500 mt-6">
-          Don’t have an account?{" "}
-          <span className="text-indigo-600 font-medium cursor-pointer hover:underline">
-            Sign Up
-          </span>
-        </p>
       </div>
 
       {/* Custom Animation */}
