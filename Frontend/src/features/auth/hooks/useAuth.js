@@ -2,7 +2,7 @@
 import {useContext} from "react"
 import {AuthContext} from "../auth.context"
 import {registerUser,loginUser,logoutUser} from "../services/auth.api"
-import {useNavigate} from "react-router"
+import {useNavigate} from "react-router-dom"
 
 export const useAuth = () => {
 
@@ -27,22 +27,23 @@ export const useAuth = () => {
 
         // role redirect
 
-        if (data.user.role ==="Super Admin") {
-          navigate("/super-admin")
+        if (data.user.role === "Super Admin") {
+          navigate("/dashboard/super-admin")
         }
-
-        else if (data.user.role ==="Admin") {
-          navigate("/admin")
+        else if (data.user.role === "Admin") {
+          navigate("/dashboard/admin")
         }
-
-        else if (data.user.role ==="Manager") {
-          navigate("/manager")
+        else if (data.user.role === "Manager") {
+          navigate("/dashboard/manager")
         }
-
-        else {navigate("/employee")}
+        else {
+          navigate("/dashboard/employee")
+        }
 
       } catch (error) {
-        console.log(error)
+        const msg = (error && error.message) ? error.message : (typeof error === 'string' ? error : 'Login failed')
+        alert(msg)
+        console.error(error)
       } finally {
         setLoading(false)
       }
@@ -57,7 +58,9 @@ export const useAuth = () => {
         return data
 
       } catch (error) {
-        console.log(error)
+        const msg = (error && error.message) ? error.message : (typeof error === 'string' ? error : 'Registration failed')
+        alert(msg)
+        console.error(error)
       } finally {
         setLoading(false)
       }
@@ -77,7 +80,9 @@ export const useAuth = () => {
         navigate("/")
 
       } catch (error) {
-        console.log(error)
+        const msg = (error && error.message) ? error.message : (typeof error === 'string' ? error : 'Logout failed')
+        alert(msg)
+        console.error(error)
       } finally {
         setLoading(false)
       }

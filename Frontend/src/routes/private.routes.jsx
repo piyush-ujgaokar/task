@@ -1,4 +1,4 @@
-import {Navigate} from "react-router"
+import {Navigate} from "react-router-dom"
 import { useAuth }from "../features/auth/hooks/useAuth"
 
 const PrivateRoute = ({children,allowedRoles}) => {

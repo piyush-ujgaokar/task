@@ -1,6 +1,6 @@
 import {useEffect,useState} from "react"
 
-import {getDashboardStatus} from "../services/dashboard.api"
+import {getDashboardData} from "../services/dashboard.api"
 
 const useDashboard = () => {
 
@@ -12,7 +12,7 @@ const useDashboard = () => {
     const fetchStatus =async () => {
 
         try {
-          const data =await getDashboardStatus()
+          const data =await getDashboardData()
           setStatus(data)
         } catch (error) {
           console.log(error)

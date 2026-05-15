@@ -20,8 +20,8 @@ app.use(cors({
 app.use('/api/auth', authRoutes)
 app.use('/api/dashboard', dashboardRoutes)
 
-app.use('/api/users',userRoutes)
+app.use('/api/users', userRoutes)
 
-app.use('/api/tasks',taskRoutes)
+app.use('/api/tasks', taskRoutes)
 
 module.exports = app;
