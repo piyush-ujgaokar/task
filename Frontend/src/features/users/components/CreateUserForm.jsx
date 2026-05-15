@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { useNavigate } from "react-router-dom";
+import { getUsers } from "../../users/services/users.api";
 
 const CreateUserForm = () => {
   const { handleRegister } = useAuth();
@@ -13,6 +14,30 @@ const CreateUserForm = () => {
     role: "",
     reportsTo: "",
   });
+
+  const [managers, setManagers] = useState([])
+  const [loadingManagers, setLoadingManagers] = useState(false)
+
+  useEffect(() => {
+    let mounted = true
+    const fetchManagers = async () => {
+      setLoadingManagers(true)
+      try {
+        const res = await getUsers()
+        if (!mounted) return
+        // filter managers
+        const mgrs = (res.users || []).filter(u => u.role === 'Manager')
+        setManagers(mgrs)
+      } catch (err) {
+        console.error('Error fetching users for reportsTo', err)
+      } finally {
+        if (mounted) setLoadingManagers(false)
+      }
+    }
+
+    fetchManagers()
+    return () => { mounted = false }
+  }, [])
 
   const changeHandler = (e) => {
     setFormData({
@@ -89,14 +114,22 @@ const CreateUserForm = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-gray-700 mb-2">Reports To (Manager ID)</label>
-        <input
-          type="text"
-          name="reportsTo"
-          placeholder="User ID of the manager"
-          onChange={changeHandler}
-          className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 bg-white/80"
-        />
+        <label className="block text-sm font-semibold text-gray-700 mb-2">Reports To (Manager)</label>
+        {loadingManagers ? (
+          <div className="text-sm text-gray-500">Loading managers...</div>
+        ) : (
+          <select
+            name="reportsTo"
+            value={formData.reportsTo}
+            onChange={changeHandler}
+            className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 bg-white/80"
+          >
+            <option value="">None</option>
+            {managers.map(m => (
+              <option key={m._id} value={m._id}>{m.name} — {m.email}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       <button

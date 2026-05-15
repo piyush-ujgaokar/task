@@ -1,6 +1,10 @@
+import { useEffect, useState } from "react"
 import useDashboard from "../hooks/useDashboard"
 import DashboardLayout from "../layouts/DashboardLayout"
 import StatsCard from "../components/StatsCard"
+import { getUsers } from "../../users/services/users.api"
+
+import { Link } from "react-router-dom"
 
 const SuperAdminDashboard = () => {
   const {status, loading} = useDashboard()
@@ -27,9 +31,67 @@ const SuperAdminDashboard = () => {
           <StatsCard title="Total Tasks" value={status?.totalTasks || 0} />
           <StatsCard title="Completed Tasks" value={status?.completedTasks || 0} />
         </div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">Organization Chart</h2>
+          <div className="bg-white rounded-lg shadow p-4">
+            <OrgChart />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   )
 }
 
 export default SuperAdminDashboard
+
+function OrgChart(){
+  const [users, setUsers] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(()=>{
+    let mounted = true
+    const fetch = async ()=>{
+      setLoading(true)
+      try{
+        const res = await getUsers()
+        if(mounted) setUsers(res.users || [])
+      }catch(err){
+        console.error('Error fetching users for org chart', err)
+      }finally{ if(mounted) setLoading(false) }
+    }
+    fetch()
+    return ()=> mounted = false
+  },[])
+
+  if(loading) return <div className="text-center py-6">Loading org chart...</div>
+
+  // build map
+  const byId = new Map(users.map(u=>[u._id, u]))
+  const admins = users.filter(u=>u.role==='Admin')
+
+  return (
+    <div>
+      {admins.map(admin=> (
+        <div key={admin._id} className="mb-4">
+          <div className="font-semibold">Admin: {admin.name} ({admin.email})</div>
+          <div className="ml-4 mt-2">
+            {users.filter(u=>u.reportsTo===admin._id).map(manager=> (
+              <div key={manager._id} className="mb-2">
+                <div className="font-medium">Manager: {manager.name}</div>
+                <div className="ml-4 text-sm text-gray-600">
+                  {users.filter(u=>u.reportsTo===manager._id).map(emp=> (
+                    <div key={emp._id}>{emp.name} — {emp.role}</div>
+                  ))}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      ))}
+      <div className="mt-4">
+        <Link to="/users" className="text-indigo-600 hover:underline">Manage users</Link>
+      </div>
+    </div>
+  )
+}

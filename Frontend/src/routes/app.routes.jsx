@@ -9,6 +9,7 @@ import SuperAdminDashboard from "../features/dashboard/pages/SuperAdminDashboard
 import AdminDashboard from "../features/dashboard/pages/AdminDashboard";
 import ManagerDashboard from "../features/dashboard/pages/ManagerDashboard";
 import EmployeeDashboard from "../features/dashboard/pages/EmployeeDashboard";
+import TasksPage from "../features/tasks/pages/TasksPage";
 
 
 export const router = createBrowserRouter([
@@ -27,6 +28,10 @@ export const router = createBrowserRouter([
     {
         path:'/users/create',
         element:<PrivateRoute allowedRoles={["Super Admin","Admin"]}><CreateUserPage/></PrivateRoute>
+    },
+    {
+        path:'/tasks',
+        element:<PrivateRoute><TasksPage/></PrivateRoute>
     },
     {
         path:'/tasks/create',

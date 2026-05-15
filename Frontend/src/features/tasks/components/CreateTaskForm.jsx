@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTask } from "../services/tasks.api";
+import { getUsers } from "../../users/services/users.api";
 
-const CreateTaskForm = () => {
+const CreateTaskForm = ({ initialAssignedTo = '' }) => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: "",
@@ -12,12 +13,38 @@ const CreateTaskForm = () => {
     dueDate: "",
   });
 
+  const [users, setUsers] = useState([])
+  const [loadingUsers, setLoadingUsers] = useState(false)
+
   const changeHandler = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value,
     });
   };
+
+  useEffect(()=>{
+    if(initialAssignedTo){
+      setFormData((s)=>({...s, assignedTo: initialAssignedTo}))
+    }
+  },[initialAssignedTo])
+
+  useEffect(()=>{
+    let mounted = true
+    const fetchUsers = async () => {
+      setLoadingUsers(true)
+      try{
+        const res = await getUsers()
+        if(mounted) setUsers(res.users || [])
+      }catch(err){
+        console.error('Error fetching users for assign-to', err)
+      }finally{
+        if(mounted) setLoadingUsers(false)
+      }
+    }
+    fetchUsers()
+    return ()=> mounted = false
+  },[])
 
   const submitHandler = async (e) => {
     e.preventDefault();
@@ -56,15 +83,17 @@ const CreateTaskForm = () => {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <div>
-          <label className="block text-sm font-semibold text-gray-700 mb-2">Assign To (User ID)</label>
-          <input
-            type="text"
-            name="assignedTo"
-            placeholder="User ID"
-            onChange={changeHandler}
-            className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 bg-white/80"
-            required
-          />
+          <label className="block text-sm font-semibold text-gray-700 mb-2">Assign To</label>
+          {loadingUsers ? (
+            <div className="text-sm text-gray-500">Loading users...</div>
+          ) : (
+            <select name="assignedTo" value={formData.assignedTo} onChange={changeHandler} required className="w-full px-4 py-3 rounded-xl border border-gray-200 outline-none focus:ring-2 focus:ring-indigo-400 transition-all duration-300 bg-white/80">
+              <option value="">Select user</option>
+              {users.map(u=> (
+                <option key={u.id || u._id} value={u.id || u._id}>{u.name} — {u.role}</option>
+              ))}
+            </select>
+          )}
         </div>
 
         <div>

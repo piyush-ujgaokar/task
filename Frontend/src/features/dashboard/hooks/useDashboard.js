@@ -12,8 +12,9 @@ const useDashboard = () => {
     const fetchStatus =async () => {
 
         try {
-          const data =await getDashboardData()
-          setStatus(data)
+            const data = await getDashboardData()
+            // backend returns { success: true, status }
+            setStatus(data.status || data)
         } catch (error) {
           console.log(error)
         } finally {

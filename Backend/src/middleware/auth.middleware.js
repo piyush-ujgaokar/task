@@ -21,7 +21,7 @@ const jwt=require('jsonwebtoken')
 
     }catch(error){
         console.error('Error in auth middleware:', error);
-        res.status(500).json({ message: 'Server error' });
+        return res.status(401).json({ message: 'Unauthorized' });
     }
 }
 

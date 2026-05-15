@@ -29,7 +29,7 @@ const TaskRow = ({ task, handleDelete }) => {
         </span>
       </td>
       
-      <td className="py-4 px-6 text-gray-600">{task.assignedTo?.name || "Unassigned"}</td>
+      <td className="py-4 px-6 text-gray-600">{task.assignTo?.name || "Unassigned"}</td>
       
       <td className="py-4 px-6 space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button className="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Edit</button>

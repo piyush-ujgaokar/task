@@ -1,4 +1,4 @@
-const usermodel =require("../models/auth.model")
+const userModel = require("../models/auth.model")
 
 const taskModel = require("../models/task.model")
 

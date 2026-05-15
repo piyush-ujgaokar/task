@@ -7,6 +7,11 @@ const createTask = async (req, res) => {
   try {
     const { title, description, assignTo, priority, dueDate } = req.body;
 
+    console.log('[createTask] request by user:', req.user && { id: req.user.id, role: req.user.role });
+    console.log('[createTask] payload assignTo (raw):', assignTo);
+    const assignToId = assignTo ? assignTo.toString().trim() : null;
+    console.log('[createTask] payload assignTo (normalized):', assignToId);
+
     // EMPLOYEE CANNOT ASSIGN
 
     if (req.user.role === "Employee") {
@@ -21,8 +26,11 @@ const createTask = async (req, res) => {
       const subordinates = await getSubordinates(req.user.id);
 
       const allowedIds = subordinates.map((user) => user._id.toString());
+      console.log('[createTask] computed allowedIds:', allowedIds);
 
-      if (!allowedIds.includes(assignTo)) {
+      // allow assigning to self or any subordinate
+      if (assignToId !== req.user.id && !allowedIds.includes(assignToId)) {
+        console.log('[createTask] assignTo not in allowedIds and not self; rejecting');
         return res.status(403).json({
           message: "Cannot assign outside hierarchy",
         });
@@ -69,8 +77,19 @@ const getTasks = async (req, res) => {
 
     // ADMIN + MANAGER
     else {
+      // include tasks they assigned and tasks assigned to their subordinates
+      const subordinates = await getSubordinates(req.user.id);
+      const allowedIds = subordinates.map((u) => u._id.toString());
+      // include self in allowedIds to catch tasks assigned directly to the admin/manager
+      allowedIds.push(req.user.id);
+
       tasks = await taskModel
-        .find({ assignBy: req.user.id })
+        .find({
+          $or: [
+            { assignBy: req.user.id },
+            { assignTo: { $in: allowedIds } },
+          ],
+        })
         .populate("assignTo", "name email");
     }
 
@@ -107,39 +126,62 @@ const getTasks = async (req, res) => {
 const updateTask = async (req, res) => {
   try {
     const task = await taskModel.findById(req.params.id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
     const oldStatus = task.status;
     const newStatus = req.body.status;
 
-    // VALIDATE FLOW
+    // Authorization: only allow assignee, creator, or permitted managers/admins/superadmin
+    const currentUser = req.user;
+    let permitted = false;
 
-    if (!validTransitions[oldStatus].includes(newStatus)) {
-      return res.status(400).json({
-        message: "Invalid status transition",
+    if (currentUser.role === 'Super Admin') permitted = true;
+    if (currentUser.id === task.assignTo?.toString()) permitted = true;
+    if (currentUser.id === task.assignBy?.toString()) permitted = true;
+
+    // Admin or Manager can act if the task is within their subordinates
+    if (!permitted && (currentUser.role === 'Admin' || currentUser.role === 'Manager')) {
+      const subs = await getSubordinates(currentUser.id);
+      const subIds = subs.map((u) => u._id.toString());
+      if (subIds.includes(task.assignTo?.toString()) || subIds.includes(task.assignBy?.toString())) {
+        permitted = true;
+      }
+    }
+
+    if (!permitted) {
+      return res.status(403).json({ message: 'Forbidden: cannot update this task' });
+    }
+
+    // If status update provided, validate transition
+    if (newStatus) {
+      if (!validTransitions[oldStatus].includes(newStatus)) {
+        return res.status(400).json({ message: 'Invalid status transition' });
+      }
+      task.status = newStatus;
+
+      await task.save();
+
+      // Log change
+      await taskLogModel.create({
+        taskId: task._id,
+        changedBy: req.user.id,
+        oldStatus,
+        newStatus,
       });
     }
 
-    task.status = newStatus;
+    // allow patching other fields (assignTo etc.)
+    const updatable = ['title', 'description', 'priority', 'dueDate'];
+    updatable.forEach((f) => {
+      if (req.body[f] !== undefined) task[f] = req.body[f];
+    });
+    if (req.body.assignTo) task.assignTo = req.body.assignTo;
 
     await task.save();
 
-    // CREATE LOG
-
-    await taskLogModel.create({
-      taskId: task._id,
-      changedBy: req.user.id,
-      oldStatus,
-      newStatus,
-    });
-
-    res.status(200).json({
-      message: "Task updated successfully",
-      success: true,
-      task,
-    });
+    res.status(200).json({ message: 'Task updated successfully', success: true, task });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 

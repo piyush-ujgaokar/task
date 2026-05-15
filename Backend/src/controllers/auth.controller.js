@@ -69,7 +69,13 @@ async function registerUser(req, res) {
 
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET_KEY, { expiresIn: '5d' })
 
-        res.cookie("token", token)
+        const cookieOptions = {
+            httpOnly: true,
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            secure: process.env.NODE_ENV === 'production'
+        }
+
+        res.cookie("token", token, cookieOptions)
 
         res.status(201).json({
             message: 'User registered successfully',
@@ -109,7 +115,13 @@ async function loginUser(req, res) {
 
         const token = jwt.sign({ id: isUserExists._id, role: isUserExists.role }, process.env.JWT_SECRET_KEY, { expiresIn: '5d' })
 
-        res.cookie("token", token)
+        const cookieOptions = {
+            httpOnly: true,
+            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+            secure: process.env.NODE_ENV === 'production'
+        }
+
+        res.cookie("token", token, cookieOptions)
 
         res.status(200).json({
             message: 'Login successful',
@@ -141,7 +153,12 @@ async function logoutUser(req, res) {
     }
 
     await blackListModel.create({ token })
-    res.clearCookie("token")
+    const cookieOptions = {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+        secure: process.env.NODE_ENV === 'production'
+    }
+    res.clearCookie("token", cookieOptions)
     res.status(200).json({ message: 'Logout successful' })
 
 

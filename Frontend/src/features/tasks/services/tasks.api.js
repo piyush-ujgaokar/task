@@ -18,18 +18,20 @@ export const getTasks = async () => {
 }
 
 export const getTaskById = async (id) => {
-    const response = await api.get(`/tasks/${id}`)
+    const response = await api.get(`/api/tasks/${id}`)
     return response.data
 }
 
 export const getTaskLogs = async (id) => {
-    const response = await api.get(`/task-logs/${id}`)
+    const response = await api.get(`/api/task-logs/${id}`)
     return response.data
 }
 
 export const createTask = async ({ title, description, assignedTo, status, priority, dueDate }) => {
     try {
-        const response = await api.post('/api/tasks', { title, description, assignedTo, status, priority, dueDate })
+        // backend expects `assignTo` and `assignBy` fields; map `assignedTo` -> `assignTo`
+        const payload = { title, description, assignTo: assignedTo, status, priority, dueDate }
+        const response = await api.post('/api/tasks', payload)
         return response.data
     } catch (error) {
         console.error('Error creating task:', error)
@@ -39,7 +41,9 @@ export const createTask = async ({ title, description, assignedTo, status, prior
 
 export const updateTask = async (taskId, { title, description, assignedTo, status, priority, dueDate }) => {
     try {
-        const response = await api.put(`/api/tasks/${taskId}`, { title, description, assignedTo, status, priority, dueDate })
+        const payload = { title, description, status, priority, dueDate }
+        if (assignedTo) payload.assignTo = assignedTo
+        const response = await api.patch(`/api/tasks/${taskId}`, payload)
         return response.data
     } catch (error) {
         console.error('Error updating task:', error)

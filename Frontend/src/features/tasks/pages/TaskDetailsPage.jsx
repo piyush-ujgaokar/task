@@ -57,11 +57,11 @@ const TaskDetailsPage = () => {
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">Assigned To</p>
-              <p className="font-semibold text-gray-800">{task?.assignedTo?.name || "Unassigned"}</p>
+              <p className="font-semibold text-gray-800">{task?.assignTo?.name || "Unassigned"}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">Created By</p>
-              <p className="font-semibold text-gray-800">{task?.assignedBy?.name || "Unknown"}</p>
+              <p className="font-semibold text-gray-800">{task?.assignBy?.name || "Unknown"}</p>
             </div>
             <div>
               <p className="text-sm text-gray-500 mb-1">Due Date</p>

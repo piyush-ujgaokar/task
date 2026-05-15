@@ -1,6 +1,10 @@
+import { useEffect, useState } from "react"
 import useDashboard from "../hooks/useDashboard"
 import DashboardLayout from "../layouts/DashboardLayout"
 import StatsCard from "../components/StatsCard"
+import { getTasks, updateTask } from "../../tasks/services/tasks.api"
+
+import { Link } from "react-router-dom"
 
 const EmployeeDashboard = () => {
   const {status, loading} = useDashboard()
@@ -26,9 +30,69 @@ const EmployeeDashboard = () => {
           <StatsCard title="My Tasks" value={status?.myTasks || 0} />
           <StatsCard title="Completed" value={status?.completedTasks || 0} />
         </div>
+
+        <div className="mt-8">
+          <h2 className="text-2xl font-semibold mb-4">Assigned Tasks</h2>
+          <div className="bg-white rounded-lg shadow p-4">
+            <EmployeeTasks />
+          </div>
+        </div>
       </div>
     </DashboardLayout>
   )
 }
 
 export default EmployeeDashboard
+
+function EmployeeTasks(){
+  const [tasks, setTasks] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(()=>{
+    let mounted = true
+    const fetch = async () => {
+      setLoading(true)
+      try{
+        const res = await getTasks()
+        if(mounted) setTasks(res.tasks || [])
+      }catch(err){
+        console.error('Error fetching employee tasks', err)
+      }finally{
+        if(mounted) setLoading(false)
+      }
+    }
+    fetch()
+    return ()=>{ mounted = false }
+  },[])
+
+  const changeStatus = async (id, newStatus) => {
+    try{
+      await updateTask(id, { status: newStatus })
+      const res = await getTasks()
+      setTasks(res.tasks || [])
+    }catch(err){
+      console.error('Error updating status', err)
+    }
+  }
+
+  if(loading) return <div className="text-center py-8">Loading tasks...</div>
+  if(tasks.length===0) return <div className="text-center py-8">No tasks assigned</div>
+
+  return (
+    <ul className="space-y-3">
+      {tasks.map(t=> (
+        <li key={t._id} className="flex justify-between items-center">
+          <div>
+            <Link to={`/tasks/${t._id}`} className="text-indigo-600 hover:underline font-medium">{t.title}</Link>
+            <div className="text-sm text-gray-500">{t.description}</div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <span className="text-sm text-gray-600">{t.status}</span>
+            {t.status !== 'In Progress' && <button onClick={()=>changeStatus(t._id,'In Progress')} className="px-3 py-1 bg-blue-50 text-blue-600 rounded">Start</button>}
+            {t.status !== 'Done' && <button onClick={()=>changeStatus(t._id,'Done')} className="px-3 py-1 bg-green-50 text-green-600 rounded">Complete</button>}
+          </div>
+        </li>
+      ))}
+    </ul>
+  )
+}
