@@ -2,7 +2,7 @@ import axios from "axios";
 
 
 const api = axios.create({
-    baseURL: 'http://localhost:3000',
+    baseURL: 'https://task-6gbp.onrender.com',
     withCredentials: true,
     timeout: 5000
 })
