@@ -8,6 +8,8 @@ import { Link } from "react-router-dom"
 
 const EmployeeDashboard = () => {
   const {status, loading} = useDashboard()
+  const [numTasks, setNumTasks] = useState(status?.myTasks || 0)
+  const [numCompleted, setNumCompleted] = useState(status?.completedTasks || 0)
 
   if(loading) {
     return (
@@ -27,14 +29,19 @@ const EmployeeDashboard = () => {
         </h1>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <StatsCard title="My Tasks" value={status?.myTasks || 0} />
-          <StatsCard title="Completed" value={status?.completedTasks || 0} />
+          <StatsCard title={`My Tasks`} value={numTasks ?? (status?.myTasks || 0)} />
+          <StatsCard title={`Completed`} value={numCompleted ?? (status?.completedTasks || 0)} />
         </div>
 
         <div className="mt-8">
           <h2 className="text-2xl font-semibold mb-4">Assigned Tasks</h2>
           <div className="bg-white rounded-lg shadow p-4">
-            <EmployeeTasks />
+            <EmployeeTasks onCountsChange={(tasks) => {
+              const total = tasks.length
+              const completed = tasks.filter(t => t.status === 'Done').length
+              setNumTasks(total)
+              setNumCompleted(completed)
+            }} />
           </div>
         </div>
       </div>
@@ -44,7 +51,7 @@ const EmployeeDashboard = () => {
 
 export default EmployeeDashboard
 
-function EmployeeTasks(){
+function EmployeeTasks({ onCountsChange }){
   const [tasks, setTasks] = useState([])
   const [loading, setLoading] = useState(true)
 
@@ -54,7 +61,11 @@ function EmployeeTasks(){
       setLoading(true)
       try{
         const res = await getTasks()
-        if(mounted) setTasks(res.tasks || [])
+        if(mounted) {
+          const list = res.tasks || []
+          setTasks(list)
+          if(onCountsChange) onCountsChange(list)
+        }
       }catch(err){
         console.error('Error fetching employee tasks', err)
       }finally{
@@ -69,7 +80,9 @@ function EmployeeTasks(){
     try{
       await updateTask(id, { status: newStatus })
       const res = await getTasks()
-      setTasks(res.tasks || [])
+      const list = res.tasks || []
+      setTasks(list)
+      if(onCountsChange) onCountsChange(list)
     }catch(err){
       console.error('Error updating status', err)
     }

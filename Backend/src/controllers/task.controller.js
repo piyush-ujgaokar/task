@@ -188,16 +188,29 @@ const updateTask = async (req, res) => {
 const deleteTask = async (req, res) => {
   const id = req.params.id;
   try {
+    const task = await taskModel.findById(id);
+    if (!task) return res.status(404).json({ message: 'Task not found' });
+
+    const currentUser = req.user;
+    let permitted = false;
+    if (currentUser.role === 'Super Admin') permitted = true;
+    if (currentUser.id === task.assignBy?.toString()) permitted = true;
+    // Admin/Manager can delete if task is within their subordinates
+    if (!permitted && (currentUser.role === 'Admin' || currentUser.role === 'Manager')) {
+      const subs = await getSubordinates(currentUser.id);
+      const subIds = subs.map((u) => u._id.toString());
+      if (subIds.includes(task.assignTo?.toString()) || subIds.includes(task.assignBy?.toString())) {
+        permitted = true;
+      }
+    }
+
+    if (!permitted) return res.status(403).json({ message: 'Forbidden: cannot delete this task' });
+
     await taskModel.findByIdAndDelete(id);
 
-    res.status(200).json({
-      message: "Task deleted successfully",
-      success: true,
-    });
+    res.status(200).json({ message: 'Task deleted successfully', success: true });
   } catch (error) {
-    res.status(500).json({
-      message: error.message,
-    });
+    res.status(500).json({ message: error.message });
   }
 };
 

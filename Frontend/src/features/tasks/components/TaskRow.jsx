@@ -1,6 +1,8 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 const TaskRow = ({ task, handleDelete }) => {
+  const { user } = useAuth()
   return (
     <tr className="hover:bg-indigo-50/50 transition-colors duration-200 group">
       <td className="py-4 px-6">
@@ -32,8 +34,15 @@ const TaskRow = ({ task, handleDelete }) => {
       <td className="py-4 px-6 text-gray-600">{task.assignTo?.name || "Unassigned"}</td>
       
       <td className="py-4 px-6 space-x-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-        <button className="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Edit</button>
-        <button onClick={() => handleDelete(task._id)} className="text-red-500 hover:text-red-700 font-medium text-sm">Delete</button>
+        {user?.role !== 'Employee' && (
+          <>
+            <button className="text-indigo-600 hover:text-indigo-800 font-medium text-sm">Edit</button>
+            <button onClick={() => handleDelete(task._id)} className="text-red-500 hover:text-red-700 font-medium text-sm">Delete</button>
+          </>
+        )}
+        {user?.role === 'Employee' && (
+          <span className="text-sm text-gray-400">No actions</span>
+        )}
       </td>
     </tr>
   );
